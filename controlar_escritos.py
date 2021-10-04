@@ -1,12 +1,14 @@
-##!/usr/bin/env python3
+#!/usr/bin/env python3
 import csv
 import re
 import os
-from datetime import datetime
+from datetime import date, datetime
+from datetime import date
 import pandas as pd
+import openpyxl as px
 
-os.getcwd()
-os.chdir("C:\\controlDeEscritos")
+#os.getcwd()
+#os.chdir("C:\\controlDeEscritos")
 
 
 formato1='%d/%m/%Y %H:%M:%S' #formato de fechas1
@@ -49,12 +51,35 @@ def convertir_numero_nvo(expte):
         result = re.sub (regex, r"\1/19\2-1-C", expte)
     return result
 
+
+def formatearArchivo(fileName):
+    fileNameXLSX= re.sub(".csv", ".xlsx", fileName)
+    pd.read_csv(fileName, delimiter=";", error_bad_lines=False).to_excel(fileNameXLSX, encoding="utf-8", index=False)
+    wb= px.load_workbook(fileNameXLSX)
+    ws = wb.active
+    ws.auto_filter.ref = ws.dimensions
+
+    ws.freeze_panes = "A2"
+
+    dims = {}
+    for row in ws.rows:
+        for cell in row:
+            if cell.value:
+                dims[cell.column_letter] = max((dims.get(cell.column_letter, 0), len(str(cell.value))))   
+    for col, value in dims.items():
+        ws.column_dimensions[col].width = value
+
+    wb.save(fileNameXLSX)
+
+
 #Función que recibe como parametros la lista de escritos ingresados, lista de proveidos y lista de salidas de letra
 # y devuelve un archivo csv con los escritos controlados
-def controlar_escritos(lista_ESCRITOS, lista_PROVEIDOS, lista_PASES):
+def controlar_escritos(lista_ESCRITOS, lista_PROVEIDOS, lista_PASES, today, fileName):
     lista_controlada=[]
     expte_controlado={}
-    with open ("ESCRITOS CONTROLADOS CON FECHA DE PROVEIDOS.csv", "w", newline="", encoding="utf-8") as salida:
+
+    
+    with open (fileName, "w", newline="", encoding="utf-8") as salida:
         Keys="Nro", "Proveyente", "Fecha de Presentacion", "Fecha Proveido", "Firmado por", "Interviene", "Profesional", "Tipo de Escrito", "Titulo del proveido"
         writer=csv.DictWriter(salida, fieldnames=Keys, delimiter=";")
         writer.writeheader()
@@ -117,6 +142,8 @@ def controlar_escritos(lista_ESCRITOS, lista_PROVEIDOS, lista_PASES):
 cabeceras_ESCRITOS = ["", "Nro", "Responsable", "Fecha de Presentacion", "Tipo Escrito", "Profesional", "Documento", "Adj1", "Adj2", "Adj3", "Adj4", "Visto INDI", "Contestar"]
 cabeceras_PROVEIDOS=["Nro", "Fecha", "Responsable", "Descripcion Escrito"]
 cabeceras_SALIDA=["Nro", "Caratula", "Envia", "Responsable", "Fecha", "", "", "Tipo", "Observacion"]
+today= date.today()
+fileName= "Escritos controlados ("+ str(today.day) + "-" + str(today.month) + "-" + str(today.year) + ").csv"
 
 pd.read_excel("grid_dbo_vConsultaProveidosFirmadosTodos.xlsx").to_csv('grid_dbo_vConsultaProveidosFirmadosTodos.csv', encoding="utf-8" ,header=False, index=False, sep=";")
 
@@ -130,9 +157,18 @@ except:
     print("Error desconocido")    
 
 try:
-    controlar_escritos(lista_ESCRITOS, lista_PROVEIDOS, lista_PASES)
+    controlar_escritos(lista_ESCRITOS, lista_PROVEIDOS, lista_PASES, today, fileName)
 except PermissionError:
     print("Archivo de salida bloqueado")
+
+
+
+formatearArchivo(fileName)
+
+
+
+
+
 
 print("proceso finalizado con exito")
 print("Presione una tecla cualquiera para salir")
