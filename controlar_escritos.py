@@ -3,7 +3,6 @@ import csv
 import re
 import os
 from datetime import date, datetime
-from datetime import date
 import pandas as pd
 import openpyxl as px
 
@@ -11,9 +10,9 @@ import openpyxl as px
 #os.chdir("C:\\controlDeEscritos")
 
 
-formato1='%d/%m/%Y %H:%M:%S' #formato de fechas1
-formato2='%d/%m/%Y'          #formato de fechas2
-formato3='%d/%m/%Y %H:%M' #formato de fechas3
+formato1='%d/%m/%Y %H:%M:%S' #formato de fechas1 (dd/mm/aaa hh:mm:ss)
+formato2='%d/%m/%Y'          #formato de fechas2 (dd/mm/aaaa)
+formato3='%d/%m/%Y %H:%M' #formato de fechas3 (dd/mm/aaaa hh:mm)
 proveyentes=["DOWNIE, Laura Catalina", "MORILLA, Maria Jose", 
 "BLOCH PEDERSEN, Cristian", "CHILISSI RACIG, Judith", "COLUSSI MATTAR, Fabiola", "Barrios, Fernando Ariel", "CHORVAT, Enrique Eduardo"] #listado de proveyentes
 funcionarios=["IBARRA, Jorge Carlos Ariel", "LUGON, Carlos Dardo", "FARIAS, Adrian Fernando Alberto", "BENITEZ, Carola Romina", "TORRESAGASTI, Marcelo Sebastian"] #listado de funcionarios
@@ -33,7 +32,7 @@ def importarFiles(file, headers):
     return result
 
 #función que recibe como parametro un número de expediente en cualquier formato, con carácteres invalidos
-# y retorna un número de expediente valido
+# y retorna un número de expediente valido (elimina los caracteres invalidos)
 def numero_valido(expte):
     regex= r"([\d]+).*([\d]{2})"
     result= re.search (regex, expte)
@@ -51,7 +50,8 @@ def convertir_numero_nvo(expte):
         result = re.sub (regex, r"\1/19\2-1-C", expte)
     return result
 
-
+# Función que cambia el formato del archivo .csv a .xlsx, inmoviliza la primer fila, configura el ancho automatico 
+# de las columnas y agrega filtros automaticos
 def formatearArchivo(fileName):
     fileNameXLSX= re.sub(".csv", ".xlsx", fileName)
     pd.read_csv(fileName, delimiter=";", error_bad_lines=False).to_excel(fileNameXLSX, encoding="utf-8", index=False)
@@ -144,7 +144,6 @@ cabeceras_PROVEIDOS=["Nro", "Fecha", "Responsable", "Descripcion Escrito"]
 cabeceras_SALIDA=["Nro", "Caratula", "Envia", "Responsable", "Fecha", "", "", "Tipo", "Observacion"]
 today= date.today()
 fileName= "Escritos controlados ("+ str(today.day) + "-" + str(today.month) + "-" + str(today.year) + ").csv"
-
 pd.read_excel("grid_dbo_vConsultaProveidosFirmadosTodos.xlsx").to_csv('grid_dbo_vConsultaProveidosFirmadosTodos.csv', encoding="utf-8" ,header=False, index=False, sep=";")
 
 try:
@@ -161,14 +160,7 @@ try:
 except PermissionError:
     print("Archivo de salida bloqueado")
 
-
-
 formatearArchivo(fileName)
-
-
-
-
-
 
 print("proceso finalizado con exito")
 print("Presione una tecla cualquiera para salir")
