@@ -50,6 +50,17 @@ def convertir_numero_nvo(expte):
         result = re.sub (regex, r"\1/19\2-1-C", expte)
     return result
 
+#retorna el número de expediente de una caratula completa (número de expediente + caratula)
+
+def captura_numero_expediente(caratula):
+    regex= r"^(.+-1-C)"
+    result=re.search (regex, caratula)
+    try:
+        return result[1]
+    except:
+        pass
+
+
 # Función que cambia el formato del archivo .csv a .xlsx, inmoviliza la primer fila, configura el ancho automatico 
 # de las columnas y agrega filtros automaticos
 def formatearArchivo(fileName):
@@ -85,14 +96,14 @@ def controlar_escritos(lista_ESCRITOS, lista_PROVEIDOS, lista_PASES, today, file
         writer.writeheader()
         for escrito in lista_ESCRITOS:
             firmado=False
-            for proveido in lista_PROVEIDOS:      
+            for proveido in reversed(lista_PROVEIDOS):      
                 try:
                     if datetime.strptime(escrito["Fecha de Presentacion"], formato2) > datetime.strptime(proveido["Fecha"], formato1) or proveido["Responsable"]=="ALFONZO, Mirta":
                         continue
                 except:
                     if datetime.strptime(escrito["Fecha de Presentacion"], formato2) > datetime.strptime(proveido["Fecha"], formato3) or proveido["Responsable"]=="ALFONZO, Mirta":
                         continue
-                if proveido["Nro"] == convertir_numero_nvo(escrito["Nro"]) and not firmado:
+                if captura_numero_expediente(proveido["Nro"]) == convertir_numero_nvo(escrito["Nro"]) and not firmado:
                     firmado=True
                     expte_controlado["Fecha Proveido"]=proveido["Fecha"]
                     expte_controlado["Interviene"]="PROVEIDO"
