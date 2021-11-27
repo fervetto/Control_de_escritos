@@ -1,9 +1,13 @@
 import re
 
-def captura_numero_expediente(caratula):
-    regex= r"^(.+-1-C)"
-    result=re.search (regex, caratula)
-    return str(result[1])
+##función que separa una caratula completa en numero (1) y caratula(2)
+def divide_caratula(caratula_completa, n):
+    regex= r"^(.+-1-C)...(.+)"
+    result=re.search (regex, caratula_completa)
+    try:
+        return str(result[n])
+    except:
+        pass
 
 #función que recibe como parametro un número de expediente en cualquier formato, con carácteres invalidos
 # y retorna un número de expediente valido (elimina los caracteres invalidos)
@@ -24,4 +28,4 @@ def convertir_numero_nvo(expte):
         result = re.sub (regex, r"\1/19\2-1-C", expte)
     return result
 
-print (captura_numero_expediente("410/2012-1-C - RAMIREZ IRMA ESTER,  BARRETO ENZO NALDO  C/ MUNICIPALIDAD DE RESISTENCIA Y/O EMPRESA DEL PILAR SRL S/ DAÑOS Y PERJUICIOS Y DAÑO MORAL POR ACC. DE TRANSITO"))
+print (divide_caratula("410/2012-1-C - RAMIREZ IRMA ESTER,  BARRETO ENZO NALDO  C/ MUNICIPALIDAD DE RESISTENCIA Y/O EMPRESA DEL PILAR SRL S/ DAÑOS Y PERJUICIOS Y DAÑO MORAL POR ACC. DE TRANSITO", 2))
